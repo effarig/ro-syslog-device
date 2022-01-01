@@ -1,0 +1,85 @@
+module_version          *       100
+
+                        GBLS    date
+date                    SETS    "$BUILDDATE" :RIGHT: 11
+
+;----------------------------------------------------------------------------
+; Register names
+;----------------------------------------------------------------------------
+pc                      RN      15
+lr                      RN      14
+sp                      RN      13
+ws                      RN      12
+sb                      RN      11
+;----------------------------------------------------------------------------
+; Module workspace
+;----------------------------------------------------------------------------
+                        ^  0
+ws_streams              #  4            ; Linked list of streams
+ws_devicefs_id          #  4            ; Our DeviceFS handle
+ws_device_registered    #  1            ; 1 => DeviceFS registered.
+ws_module_broken        #  1            ; 1 => Module broken.
+ws_padding              #  2            ; Alignment [unused].
+ws_init_count           #  4            ; Initlist count.
+ws_size                 #  0            ; MUST BE LAST
+
+;----------------------------------------------------------------------------
+; Stream workspace
+;----------------------------------------------------------------------------
+                        ^  0
+sb_previous             #  4            ; Previous stream block in list/0
+sb_next                 #  4            ; Next stream block in list/0
+sb_devicefs_id          #  4            ; Our DeviceFS handle
+sb_priority             #  4            ; SysLog priority
+sb_logname              #  32           ; SysLog name
+sb_logname_end          #  0            ; End of above.
+sb_logline_size         #  4            ; No bytes currently in line buffer
+sb_logline              #  1024         ; Line buffer (for writing log)
+sb_logline_end          #  0            ; End of above
+sb_logline_term         #  12           ; Space for terminator after buffer
+sb_size                 #  0            ; MUST BE LAST
+
+;----------------------------------------------------------------------------
+; SWIs
+;----------------------------------------------------------------------------
+SWIErrorFlag                        * 1 :SHL: 17
+
+XDeviceFS_Register                  * &42740 + SWIErrorFlag
+XDeviceFS_Deregister                * &42741 + SWIErrorFlag
+XDeviceFS_RegisterObjects           * &42742 + SWIErrorFlag
+XDeviceFS_DeregisterObjects         * &42743 + SWIErrorFlag
+XDeviceFS_CallDevice                * &42744 + SWIErrorFlag
+XDeviceFS_Threshold                 * &42745 + SWIErrorFlag
+XDeviceFS_ReceivedCharacter         * &42746 + SWIErrorFlag
+XDeviceFS_TransmitCharacter         * &42747 + SWIErrorFlag
+
+XOS_Module                          * &1E    + SWIErrorFlag
+XOS_ReadUnsigned                    * &21    + SWIErrorFlag
+
+XSysLog_LogMessage                  * &4C880 + SWIErrorFlag
+XSysLog_FlushLog                    * &4C882 + SWIErrorFlag
+
+;----------------------------------------------------------------------------
+; Service calls
+;----------------------------------------------------------------------------
+Service_DeviceFSStarting            * &70
+Service_DeviceFSDying               * &71
+Service_DeviceFSDead                * &79
+
+;----------------------------------------------------------------------------
+; Errors
+;----------------------------------------------------------------------------
+        MACRO
+        Err     $no,$str
+        DCD     $no
+        DCB     "SysLogDevice: $str",0
+        ALIGN
+        MEND
+
+error_base_no                       * &00819A00
+                                    ^ 0
+ErrModuleInUse                      # 1
+ErrBadParams                        # 1
+
+;----------------------------------------------------------------------------
+        END

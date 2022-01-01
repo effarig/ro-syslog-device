@@ -1,0 +1,100 @@
+SysLogDevice
+============
+
+
+Requirements
+------------
+RISC OS 3 or later.
+26/32 bit compatible.
+SysLog.
+
+
+Installation
+------------
+Use the !Boot System merge tool to merge the supplied system with the one
+in this distribution. Or if you prefer, it can be manually installed in
+System:310.Modules.
+
+
+Introduction
+------------
+SysLogDevice provides a write only DeviceFS device driver which sends its
+output to a SysLog log. This allows a SysLog log to be written to like a
+standard file, e.g.
+
+    *echo Hello { > Devices#log=Test;priority=1:$.SysLog }
+
+Usage
+-----
+To use SysLogDevice, you need to do something like:
+
+    RmEnsure SysLogDevice 0.02 RmLoad System:Modules.SysLogDev
+
+Note: SysLogDevice does not ensure SysLog is running, see the documentation
+supplied with !SysLog to do this. If SysLog is not running logging is
+silently discarded.
+
+To write to a log called `Test`, open a writable file:
+
+    Devices#log=Test:$.SysLog
+
+The file path special field (the bit between the `#` and the ':$') is
+used to pass parameters. The `log` parameter determines which log to
+write to and must be present.
+
+Multiple streams can be opened onto the same or different logs.
+
+Special Field Parameters
+------------------------
+In addition to those provided by DeviceFS, the following special field
+parameters in the log file path are interpreted by the SysLogDevice
+module:
+
+  | Parameter  | Type    | Descrption                                    |
+  | ---------- | ------- | --------------------------------------------- |
+  | `log`      | string  | Name of log to write to; mandatory.           |
+  | `priority` | integer | Log priority (level); optional, default `64`. |
+
+The value of a parameter is separated from the name by an equals sign and
+parameters are separated by semicolons.
+
+
+Limitations
+-----------
+The data written to the device is assumed to be plain text, each line
+terminated by a control character, ASCII 0-31. Empty lines are filtered out.
+
+There is, at present, a limit on the maximum line length (1K at present), any
+lines longer than this are broken into multiple log messages.
+
+The SysLog device is write only.
+
+Note: At the time of writing the 'ARMLib' library is not yet published so
+this cannot be built from source yet.
+
+
+Comments and Updates
+--------------------
+The latest release is on GitHub <https://github.com/effarig/ro-syslog-device>.
+
+Please and send any bug reports, comments, suggestions etc. using GitHub.
+
+
+Changes
+-------
+1.00 (02-Jam-2021)
+  * Reorganised for GitHub.
+  * Removed tabs from sources.
+  * Updated !ReadMe.
+  * Fixes to Makefile.
+
+0.02 (24-Jul-2005)
+  * No error generated when SysLog not present.
+
+0.01 (09-Jun-2004):
+  * First version
+
+
+License
+=======
+See LICENSE file.
